@@ -6,6 +6,7 @@ from uuid import uuid4
 
 from flask import Flask, jsonify, request
 
+
 class Blockchain(object):
     def __init__(self):
         self.chain = []
@@ -28,7 +29,7 @@ class Blockchain(object):
 
         return block
 
-    def new_transaction(self):
+    def new_transaction(self, sender, recipient, amount):
         self.current_transactions.append({
             'sender': sender,
             'recipient': recipient,
@@ -57,13 +58,14 @@ class Blockchain(object):
         guess = f'{last_proof}{proof}'.encode()
         guess_hash = hashlib.sha256(guess).hexdigest()
         return guess_hash[:4] == "0000"
-    
+
 
 app = Flask(__name__)
 
 node_identifier = str(uuid4()).replace('-', '')
 
 blockchain = Blockchain()
+
 
 @app.route('/mine', methods=['GET'])
 def mine():
@@ -89,6 +91,7 @@ def mine():
 
     return jsonify(response), 200
 
+
 @app.route('/transactions/new', methods=['POST'])
 def new_transaction():
     values = request.get_json()
@@ -97,12 +100,14 @@ def new_transaction():
 
     if not all(k in values for k in required):
         return 'Missing values', 400
-    
-    index = blockchain.new_transaction(values['sender'], values['recipient'], values['amount'])
+
+    index = blockchain.new_transaction(values['sender'], values['recipient'],
+                                       values['amount'])
 
     response = {'message': f'This transaction will be added to Block {index}'}
 
     return jsonify(response), 201
+
 
 @app.route('/chain', methods=['GET'])
 def full_chain():
@@ -111,6 +116,7 @@ def full_chain():
         'length': len(blockchain.chain),
     }
     return jsonify(response), 200
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
