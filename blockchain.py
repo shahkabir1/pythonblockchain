@@ -80,7 +80,7 @@ def mine():
     block = blockchain.new_block(proof)
 
     response = {
-        'message': "New Block Created",
+        'message': "New Block Forged",
         'index': block['index'],
         'transactions': block['transactions'],
         'proof': block['proof'],
