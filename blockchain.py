@@ -1,6 +1,6 @@
 import hashlib
 import json
-
+from textwrap import dedent
 from time import time
 from uuid import uuid4
 
@@ -20,7 +20,7 @@ class Blockchain(object):
             'timestamp': time(),
             'transactions': self.current_transactions,
             'proof': proof,
-            'previous_hash': self.hash(self.chain[-1]),
+            'previous_hash': previous_hash or self.hash(self.chain[-1]),
         }
 
         self.current_transactions = []
@@ -54,7 +54,8 @@ class Blockchain(object):
 
         return proof
 
-    def valid_proof(self, last_proof, proof):
+    @staticmethod
+    def valid_proof(last_proof, proof):
         guess = f'{last_proof}{proof}'.encode()
         guess_hash = hashlib.sha256(guess).hexdigest()
         return guess_hash[:4] == "0000"
@@ -79,7 +80,8 @@ def mine():
         amount=1,
     )
 
-    block = blockchain.new_block(proof)
+    previous_hash = blockchain.hash(last_block)
+    block = blockchain.new_block(proof, previous_hash)
 
     response = {
         'message': "New Block Forged",
@@ -104,7 +106,7 @@ def new_transaction():
     index = blockchain.new_transaction(values['sender'], values['recipient'],
                                        values['amount'])
 
-    response = {'message': f'This transaction will be added to Block {index}'}
+    response = {'message': f'Transaction will be added to Block {index}'}
 
     return jsonify(response), 201
 
